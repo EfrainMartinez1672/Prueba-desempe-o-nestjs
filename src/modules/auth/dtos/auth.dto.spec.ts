@@ -18,11 +18,13 @@ describe('Auth DTO schemas', () => {
         name: ' Ana ',
         email: 'ANA@example.com',
         password: 'a-secure-password',
+        specialty: 'Electrical systems',
       }),
     ).toEqual({
       name: 'Ana',
       email: 'ana@example.com',
       password: 'a-secure-password',
+      specialty: 'Electrical systems',
     });
 
     expect(() => RegisterSchema.parse({ name: 'Ana', email: 'ana@example.com', password: 'short' })).toThrow();

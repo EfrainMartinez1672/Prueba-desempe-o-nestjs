@@ -4,6 +4,7 @@ import type { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcrypt';
 import type { RedisService } from '../../../infrastructure/redis/redis.service.js';
 import type { UserDao } from '../../users/dao/user.dao.js';
+import { UserRole } from '../../users/entities/user-role.enum.js';
 import type { User } from '../../users/entities/user.entity.js';
 import type { UsersService } from '../../users/services/users.service.js';
 import { hashAuthToken, refreshSessionKey, revokedAccessTokenKey } from '../auth-token.util.js';
@@ -18,6 +19,8 @@ describe('AuthService', () => {
     name: 'Ana Pérez',
     email: 'ana@example.com',
     passwordHash: 'stored-password-hash',
+    role: UserRole.TECHNICIAN,
+    technicianProfile: { specialty: 'Electrical systems' },
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
     deletedAt: null,
@@ -124,7 +127,7 @@ describe('AuthService', () => {
     const expiration = Math.floor(Date.now() / 1000) + 600;
 
     await service.logout(
-      { sub: user.id, email: user.email, sid: 'session-1', tokenUse: 'access', exp: expiration },
+      { sub: user.id, email: user.email, sid: 'session-1', tokenUse: 'access', role: user.role, exp: expiration },
       'access-token',
     );
 

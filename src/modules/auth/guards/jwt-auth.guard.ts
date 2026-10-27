@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import type { Request } from 'express';
+import { UserRole } from '../../users/entities/user-role.enum.js';
 import { AuthService } from '../services/auth.service.js';
 
 interface AuthenticatedRequest extends Request {
@@ -9,6 +10,7 @@ interface AuthenticatedRequest extends Request {
     email: string;
     sid: string;
     tokenUse: 'access';
+    role: UserRole;
     exp: number;
   };
 }

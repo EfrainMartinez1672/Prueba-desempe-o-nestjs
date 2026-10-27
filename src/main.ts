@@ -1,8 +1,8 @@
-import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import cookieParser from 'cookie-parser';
+import { ZodValidationPipe } from 'nestjs-zod';
 import 'reflect-metadata';
 import { AppModule } from './app.module.js';
 
@@ -14,7 +14,7 @@ async function bootstrap(): Promise<void> {
   app.setGlobalPrefix(prefix);
   app.use(cookieParser());
   app.enableShutdownHooks();
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalPipes(new ZodValidationPipe());
 
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Prueba desempeño API')

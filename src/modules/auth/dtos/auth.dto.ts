@@ -3,6 +3,7 @@ import { z } from 'zod';
 
 export const RegisterSchema = z.object({
   name: z.string().trim().min(1).max(120),
+  specialty: z.string().trim().min(1).max(120),
   email: z
     .string()
     .trim()

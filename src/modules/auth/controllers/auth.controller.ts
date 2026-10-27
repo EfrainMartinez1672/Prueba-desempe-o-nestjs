@@ -2,10 +2,11 @@ import { Body, Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards
 import { ConfigService } from '@nestjs/config';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import type { CookieOptions, Request, Response } from 'express';
-import { AuthService } from '../services/auth.service.js';
+import { UserRole } from '../../users/entities/user-role.enum.js';
+import { UsersService } from '../../users/services/users.service.js';
 import { LoginDto, RefreshTokenDto, RegisterDto } from '../dtos/auth.dto.js';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard.js';
-import { UsersService } from '../../users/services/users.service.js';
+import { AuthService } from '../services/auth.service.js';
 
 interface AuthenticatedRequest extends Request {
   accessToken?: string;
@@ -14,6 +15,7 @@ interface AuthenticatedRequest extends Request {
     email: string;
     sid: string;
     tokenUse: 'access';
+    role: UserRole;
     exp: number;
   };
 }

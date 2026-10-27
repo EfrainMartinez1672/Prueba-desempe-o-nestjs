@@ -3,18 +3,20 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcrypt';
 import { randomUUID } from 'node:crypto';
-import { UserDao } from '../../users/dao/user.dao.js';
-import { UsersService } from '../../users/services/users.service.js';
 import { RedisService } from '../../../infrastructure/redis/redis.service.js';
-import { LoginDto, RegisterDto } from '../dtos/auth.dto.js';
-import { hashAuthToken, refreshSessionKey, revokedAccessTokenKey } from '../auth-token.util.js';
+import { UserDao } from '../../users/dao/user.dao.js';
 import { UserResponseDto } from '../../users/dtos/user-response.dto.js';
+import { UserRole } from '../../users/entities/user-role.enum.js';
+import { UsersService } from '../../users/services/users.service.js';
+import { hashAuthToken, refreshSessionKey, revokedAccessTokenKey } from '../auth-token.util.js';
+import { LoginDto, RegisterDto } from '../dtos/auth.dto.js';
 
 interface AccessTokenPayload {
   sub: number;
   email: string;
   sid: string;
   tokenUse: 'access';
+  role: UserRole;
   exp: number;
 }
 
@@ -79,7 +81,7 @@ export class AuthService {
     }
 
     const sessionId = randomUUID();
-    const tokens = await this.createTokenPair(user.id, user.email, sessionId);
+    const tokens = await this.createTokenPair(user.id, user.email, sessionId, user.role);
     await this.redisService.set(
       refreshSessionKey(sessionId),
       hashAuthToken(tokens.refreshToken),
@@ -113,7 +115,7 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token no válido o expirado.');
     }
 
-    const tokens = await this.createTokenPair(user.id, user.email, payload.sid);
+    const tokens = await this.createTokenPair(user.id, user.email, payload.sid, user.role);
     const rotated = await this.redisService.rotateValue(
       refreshSessionKey(payload.sid),
       hashAuthToken(refreshToken),
@@ -151,6 +153,7 @@ export class AuthService {
       !Number.isSafeInteger(payload.sub) ||
       typeof payload.email !== 'string' ||
       typeof payload.sid !== 'string' ||
+      !Object.values(UserRole).includes(payload.role) ||
       typeof payload.exp !== 'number'
     ) {
       throw new UnauthorizedException('Token de acceso no válido o expirado.');
@@ -167,10 +170,10 @@ export class AuthService {
     return (await this.redisService.get(refreshSessionKey(sessionId))) !== null;
   }
 
-  private async createTokenPair(userId: number, email: string, sessionId: string): Promise<TokenPair> {
+  private async createTokenPair(userId: number, email: string, sessionId: string, role: UserRole): Promise<TokenPair> {
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(
-        { sub: userId, email, sid: sessionId, tokenUse: 'access' },
+        { sub: userId, email, sid: sessionId, tokenUse: 'access', role },
         {
           secret: this.accessSecret,
           expiresIn: this.accessTokenTtlSeconds,

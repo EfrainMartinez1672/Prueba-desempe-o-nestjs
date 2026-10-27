@@ -15,6 +15,7 @@ import { UsersModule } from './modules/users/users.module.js';
       load: [databaseConfig],
       validationSchema: Joi.object({
         NODE_ENV: Joi.string().valid('development', 'test', 'production').default('development'),
+        COOKIE_SECURE: Joi.boolean().truthy('true').falsy('false').optional(),
         PORT: Joi.number().port().default(3000),
         API_PREFIX: Joi.string().default('api/v2'),
         DB_HOST: Joi.string().default('localhost'),

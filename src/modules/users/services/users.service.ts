@@ -1,6 +1,5 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { hash } from 'bcrypt';
-import { RegisterDto } from '../../auth/dtos/auth.dto.js';
 import { UserDao } from '../dao/user.dao.js';
 import { CreateUserDto } from '../dtos/create-user.dto.js';
 import { UpdateUserDto } from '../dtos/update-user.dto.js';
@@ -13,18 +12,7 @@ import { User } from '../entities/user.entity.js';
 export class UsersService {
   constructor(private readonly userDao: UserDao) {}
 
-  async create(dto: RegisterDto): Promise<UserResponseDto> {
-    const user = this.userDao.create({
-      name: dto.name,
-      email: dto.email,
-      passwordHash: await hash(dto.password, 12),
-      role: UserRole.TECHNICIAN,
-    });
-    user.technicianProfile = this.createProfile(dto.specialty, user);
-    return this.saveUser(user);
-  }
-
-  async createByAdmin(dto: CreateUserDto): Promise<UserResponseDto> {
+  async create(dto: CreateUserDto): Promise<UserResponseDto> {
     const user = this.userDao.create({
       name: dto.name,
       email: dto.email,
@@ -75,9 +63,10 @@ export class UsersService {
     return this.saveUser(user);
   }
 
-  async remove(id: number): Promise<void> {
+  async remove(id: number): Promise<{ status: 'deleted' }> {
     const deleted = await this.userDao.softDelete(id);
     if (!deleted) throw new NotFoundException('User not found.');
+    return { status: 'deleted' };
   }
 
   private async getUserOrFail(id: number): Promise<User> {

@@ -6,7 +6,6 @@ import type { RedisService } from '../../../infrastructure/redis/redis.service.j
 import type { UserDao } from '../../users/dao/user.dao.js';
 import { UserRole } from '../../users/entities/user-role.enum.js';
 import type { User } from '../../users/entities/user.entity.js';
-import type { UsersService } from '../../users/services/users.service.js';
 import { hashAuthToken, refreshSessionKey, revokedAccessTokenKey } from '../auth-token.util.js';
 import type { LoginDto } from '../dtos/auth.dto.js';
 import { AuthService } from './auth.service.js';
@@ -31,9 +30,6 @@ describe('AuthService', () => {
       findByEmail: vi.fn().mockResolvedValue(user),
       findById: vi.fn().mockResolvedValue(user),
     } as unknown as UserDao;
-    const usersService = {
-      create: vi.fn(),
-    } as unknown as UsersService;
     const jwtService = {
       signAsync: vi.fn().mockResolvedValueOnce('access-token').mockResolvedValueOnce('refresh-token'),
       verifyAsync: vi.fn(),
@@ -50,9 +46,8 @@ describe('AuthService', () => {
     } as unknown as ConfigService;
 
     return {
-      service: new AuthService(userDao, usersService, jwtService, redisService, config),
+      service: new AuthService(userDao, jwtService, redisService, config),
       userDao,
-      usersService,
       jwtService,
       redisService,
     };
@@ -137,7 +132,6 @@ describe('AuthService', () => {
 
   it('requires separate strong secrets for access and refresh tokens', () => {
     const userDao = {} as UserDao;
-    const usersService = {} as UsersService;
     const jwtService = {} as JwtService;
     const redisService = {} as RedisService;
     const config = {
@@ -145,7 +139,7 @@ describe('AuthService', () => {
       get: vi.fn(() => undefined),
     } as unknown as ConfigService;
 
-    expect(() => new AuthService(userDao, usersService, jwtService, redisService, config)).toThrow(
+    expect(() => new AuthService(userDao, jwtService, redisService, config)).toThrow(
       'deben tener al menos 32 caracteres',
     );
   });

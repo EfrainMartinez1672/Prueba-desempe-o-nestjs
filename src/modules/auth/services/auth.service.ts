@@ -7,9 +7,8 @@ import { RedisService } from '../../../infrastructure/redis/redis.service.js';
 import { UserDao } from '../../users/dao/user.dao.js';
 import { UserResponseDto } from '../../users/dtos/user-response.dto.js';
 import { UserRole } from '../../users/entities/user-role.enum.js';
-import { UsersService } from '../../users/services/users.service.js';
 import { hashAuthToken, refreshSessionKey, revokedAccessTokenKey } from '../auth-token.util.js';
-import { LoginDto, RegisterDto } from '../dtos/auth.dto.js';
+import { LoginDto } from '../dtos/auth.dto.js';
 
 interface AccessTokenPayload {
   sub: number;
@@ -48,7 +47,6 @@ export class AuthService {
 
   constructor(
     private readonly userDao: UserDao,
-    private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
     config: ConfigService,
@@ -68,10 +66,6 @@ export class AuthService {
       604800,
       'REFRESH_EXPIRES_IN_SECONDS',
     );
-  }
-
-  register(dto: RegisterDto): Promise<UserResponseDto> {
-    return this.usersService.create(dto);
   }
 
   async login(dto: LoginDto): Promise<TokenPair & { user: UserResponseDto }> {

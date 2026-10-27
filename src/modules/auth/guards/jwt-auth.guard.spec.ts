@@ -4,8 +4,8 @@ import type { AuthService } from '../services/auth.service.js';
 import { JwtAuthGuard } from './jwt-auth.guard.js';
 
 describe('JwtAuthGuard', () => {
-  const buildContext = (authorization?: string) => {
-    const request = { headers: { authorization } } as Request & {
+  const buildContext = (accessToken?: string) => {
+    const request = { headers: {}, cookies: accessToken ? { accessToken } : {} } as Request & {
       accessToken?: string;
       user?: unknown;
     };
@@ -15,10 +15,10 @@ describe('JwtAuthGuard', () => {
     return { context, request };
   };
 
-  it('rejects missing or malformed bearer headers', async () => {
+  it('rejects a missing access-token cookie', async () => {
     const authService = {} as AuthService;
     const guard = new JwtAuthGuard(authService);
-    const { context } = buildContext('Basic token');
+    const { context } = buildContext();
 
     await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
   });
@@ -37,7 +37,7 @@ describe('JwtAuthGuard', () => {
       hasActiveSession: vi.fn().mockResolvedValue(true),
     } as unknown as AuthService;
     const guard = new JwtAuthGuard(authService);
-    const { context, request } = buildContext('Bearer valid-token');
+    const { context, request } = buildContext('valid-token');
 
     await expect(guard.canActivate(context)).resolves.toBe(true);
     expect(authService.isAccessTokenRevoked).toHaveBeenCalledWith('valid-token');
@@ -58,7 +58,7 @@ describe('JwtAuthGuard', () => {
       hasActiveSession: vi.fn().mockResolvedValue(false),
     } as unknown as AuthService;
     const guard = new JwtAuthGuard(authService);
-    const { context } = buildContext('Bearer logged-out-token');
+    const { context } = buildContext('logged-out-token');
 
     await expect(guard.canActivate(context)).rejects.toThrow(UnauthorizedException);
   });

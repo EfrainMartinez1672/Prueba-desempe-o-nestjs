@@ -10,9 +10,10 @@ Base de API con NestJS, TypeScript, PostgreSQL, TypeORM y Redis.
 ## Inicio rápido
 
 1. Copia `.env.example` a `.env` y sustituye los secretos de autenticación por dos valores aleatorios distintos de al menos 32 caracteres.
-2. Ejecuta `docker compose up -d postgres redis` para iniciar la base de datos y la caché.
-3. Ejecuta `npm install` y `npm run start:dev`.
-4. Comprueba `http://localhost:3000/api/v2/health`; Swagger queda en `http://localhost:3000/api/v2/docs`.
+2. Ejecuta `docker compose up -d --build` para iniciar la API, PostgreSQL y Redis.
+3. Abre `http://localhost:3000/api/v2/docs` para Swagger y `http://localhost:3000/api/v2/health` para comprobar la API.
+
+Compose publica el contenedor de la API en el puerto indicado por `PORT` (por defecto `3000`) y configura internamente `DB_HOST=postgres` y `REDIS_HOST=redis`. Si prefieres ejecutar la API fuera de Docker, usa `npm install` y `npm run start:dev`; en ese caso, inicia solo los servicios de datos con `docker compose up -d postgres redis`.
 
 No subas `.env` ni secretos reales al repositorio. La configuración de TypeORM mantiene `synchronize` desactivado; usa migraciones para modificar el esquema.
 

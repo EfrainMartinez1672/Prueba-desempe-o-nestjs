@@ -4,7 +4,7 @@
 
 The `users` table stores account-wide fields: name, unique email, password hash, role, timestamps, and a soft-delete timestamp. Roles are `ADMIN` and `TECHNICIAN`.
 
-Technician-only data is stored in the one-to-one `technician_profiles` table. Admin accounts do not have a technician profile. The public registration endpoint always assigns the `TECHNICIAN` role; it never accepts a role from the request. Registration requires a specialty.
+Technician-only data is stored in the one-to-one `technician_profiles` table. Admin accounts do not have a technician profile. There is one account-creation endpoint: `POST /users`, protected for administrators. Public registration has intentionally been removed; only an administrator can create accounts and assign roles.
 
 Passwords are hashed with bcrypt and excluded from normal entity queries. API responses use `UserResponseDto` and never include the password hash.
 
@@ -22,13 +22,13 @@ The migration creates the users table, role enum, and technician profiles table.
 
 All routes use the global API prefix, which defaults to `/api/v2`.
 
-| Method   | Path         | Description                                                                    |
-| -------- | ------------ | ------------------------------------------------------------------------------ |
-| `POST`   | `/users`     | Create an account. Requires an admin access token.                             |
-| `GET`    | `/users`     | List accounts. Requires an admin access token.                                 |
-| `GET`    | `/users/:id` | Get one account. Requires an admin access token.                               |
-| `PATCH`  | `/users/:id` | Update account fields or technician specialty. Requires an admin access token. |
-| `DELETE` | `/users/:id` | Soft-delete an account. Requires an admin access token.                        |
+| Method   | Path         | Description                                                                              |
+| -------- | ------------ | ---------------------------------------------------------------------------------------- |
+| `POST`   | `/users`     | Create an account. Requires an administrator session cookie.                             |
+| `GET`    | `/users`     | List accounts. Requires an administrator session cookie.                                 |
+| `GET`    | `/users/:id` | Get one account. Requires an administrator session cookie.                               |
+| `PATCH`  | `/users/:id` | Update account fields or technician specialty. Requires an administrator session cookie. |
+| `DELETE` | `/users/:id` | Soft-delete an account. Requires an administrator session cookie.                        |
 
 Every CRUD endpoint is protected by `JwtAuthGuard` and `RolesGuard`. The role guard checks the current role in the database, so role changes take effect without waiting for an access token to expire.
 
@@ -48,16 +48,11 @@ Every CRUD endpoint is protected by `JwtAuthGuard` and `RolesGuard`. The role gu
 
 ## First administrator
 
-The CRUD API is admin-only and intentionally does not allow public role selection. Register the first account through the existing auth registration endpoint, apply the migration, then promote that account using a trusted database session:
+The only account-creation endpoint is admin-only, so provision the first administrator through a trusted database session after applying the migration. Generate a bcrypt hash using a trusted local bootstrap process, then insert the account directly. Do not store a real password or hash in source control:
 
 ```sql
-BEGIN;
-DELETE FROM technician_profiles
-WHERE user_id = (SELECT id FROM users WHERE email = 'admin@example.com' AND deleted_at IS NULL);
-UPDATE users
-SET role = 'ADMIN', updated_at = now()
-WHERE email = 'admin@example.com' AND deleted_at IS NULL;
-COMMIT;
+INSERT INTO users (name, email, password_hash, role)
+VALUES ('Initial Administrator', 'admin@example.com', '<bcrypt-hash>', 'ADMIN');
 ```
 
-After promotion, sign in again to obtain an access token and use it for the user CRUD endpoints. Never expose an endpoint that lets an unauthenticated caller promote accounts.
+After provisioning, sign in through `POST /auth/login`. The API sets HttpOnly access and refresh cookies; Swagger sends them automatically for the user CRUD endpoints. Never expose an endpoint that lets an unauthenticated caller create accounts or promote roles.

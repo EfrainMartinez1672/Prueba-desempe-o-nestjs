@@ -22,7 +22,7 @@ describe('UsersService', () => {
     } as unknown as UserDao;
     const service = new UsersService(userDao);
 
-    const result = await service.createByAdmin({
+    const result = await service.create({
       name: 'Taylor Reed',
       email: 'taylor@example.com',
       password: 'secure-password',

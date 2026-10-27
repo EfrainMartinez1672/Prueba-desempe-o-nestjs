@@ -21,6 +21,7 @@ import { MaintenanceResponseDto } from '../dtos/maintenance-response.dto.js';
 import { UpdateMaintenanceStatusDto } from '../dtos/update-maintenance-status.dto.js';
 import { MaintenanceStatus } from '../entities/maintenance-status.enum.js';
 import { MaintenancesService } from '../services/maintenances.service.js';
+import { ApiKeyAuth } from '../decoradores/api-key-auth.decorator.js';
 
 @ApiTags('maintenances')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -30,6 +31,7 @@ export class MaintenancesController {
   constructor(private readonly maintenancesService: MaintenancesService) {}
 
   @Post()
+  @ApiKeyAuth()
   @ApiOperation({
     summary: 'Schedule maintenance.',
     description: 'Administrator-only. Vehicle, active technician, and active workshop must exist.',

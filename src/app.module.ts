@@ -34,6 +34,7 @@ import { WorkshopsModule } from './modules/workshops/workshops.module.js';
         REFRESH_SECRET: Joi.string().min(32).required().invalid(Joi.ref('JWT_SECRET')),
         JWT_EXPIRES_IN_SECONDS: Joi.number().integer().positive().default(900),
         REFRESH_EXPIRES_IN_SECONDS: Joi.number().integer().positive().default(604800),
+        API_KEY: Joi.string().min(16).required(),
       }),
     }),
     TypeOrmModule.forRootAsync({

@@ -16,6 +16,7 @@ export function setupSwagger(app: INestApplication, prefix: string): void {
     .addTag('maintenances', 'Administrator-only vehicle maintenance scheduling and history.')
     .addTag('workshops', 'Administrator-only workshop management and status.')
     .addTag('health', 'Application health checks.')
+    .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'api-key')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { UserRole } from '../entities/user-role.enum.js';
+import { UserStatus } from '../entities/user-status.enum.js';
 import { User } from '../entities/user.entity.js';
 
 export class UserResponseDto {
@@ -15,6 +16,9 @@ export class UserResponseDto {
   @ApiProperty({ enum: UserRole, example: UserRole.TECHNICIAN })
   role: UserRole;
 
+  @ApiProperty({ enum: UserStatus, example: UserStatus.ACTIVE })
+  status: UserStatus;
+
   @ApiProperty({ example: 'Electrical systems', nullable: true, description: 'Null for administrator accounts.' })
   specialty: string | null;
 
@@ -29,6 +33,7 @@ export class UserResponseDto {
     this.name = user.name;
     this.email = user.email;
     this.role = user.role;
+    this.status = user.status;
     this.specialty = user.technicianProfile?.specialty ?? null;
     this.createdAt = user.createdAt;
     this.updatedAt = user.updatedAt;

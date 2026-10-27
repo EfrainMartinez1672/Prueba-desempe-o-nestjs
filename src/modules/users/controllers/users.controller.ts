@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
   ApiBody,
@@ -16,9 +16,11 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard.js';
 import { Roles } from '../../auth/guards/roles.decorator.js';
 import { RolesGuard } from '../../auth/guards/roles.guard.js';
 import { CreateUserDto } from '../dtos/create-user.dto.js';
+import { UpdateUserStatusDto } from '../dtos/update-user-status.dto.js';
 import { UpdateUserDto } from '../dtos/update-user.dto.js';
 import { UserResponseDto } from '../dtos/user-response.dto.js';
 import { UserRole } from '../entities/user-role.enum.js';
+import { UserStatus } from '../entities/user-status.enum.js';
 import { UsersService } from '../services/users.service.js';
 
 @ApiTags('users')
@@ -42,6 +44,7 @@ export class UsersController {
         email: { type: 'string', format: 'email', maxLength: 254, example: 'jordan@example.com' },
         password: { type: 'string', minLength: 8, maxLength: 72, example: 'a-strong-password' },
         role: { type: 'string', enum: Object.values(UserRole), example: UserRole.TECHNICIAN },
+        status: { type: 'string', enum: Object.values(UserStatus), default: UserStatus.ACTIVE },
         specialty: { type: 'string', minLength: 1, maxLength: 120, example: 'Electrical systems' },
       },
     },
@@ -49,7 +52,7 @@ export class UsersController {
   @ApiCreatedResponse({ description: 'The account was created.', type: UserResponseDto })
   @ApiBadRequestResponse({ description: 'The request body is invalid or violates account rules.' })
   @ApiConflictResponse({ description: 'An account with the email already exists.' })
-  @ApiUnauthorizedResponse({ description: 'A valid access token is required.' })
+  @ApiUnauthorizedResponse({ description: 'A valid administrator access cookie is required.' })
   @ApiForbiddenResponse({ description: 'Only administrators can create accounts.' })
   create(@Body() dto: CreateUserDto) {
     return this.usersService.create(dto);
@@ -58,7 +61,7 @@ export class UsersController {
   @Get()
   @ApiOperation({ summary: 'List all user accounts.', description: 'Administrator-only.' })
   @ApiOkResponse({ description: 'The account list.', type: UserResponseDto, isArray: true })
-  @ApiUnauthorizedResponse({ description: 'A valid access token is required.' })
+  @ApiUnauthorizedResponse({ description: 'A valid administrator access cookie is required.' })
   @ApiForbiddenResponse({ description: 'Only administrators can list accounts.' })
   findAll() {
     return this.usersService.findAll();
@@ -70,7 +73,7 @@ export class UsersController {
   @ApiOkResponse({ description: 'The requested account.', type: UserResponseDto })
   @ApiBadRequestResponse({ description: 'The ID must be an integer.' })
   @ApiNotFoundResponse({ description: 'The account does not exist.' })
-  @ApiUnauthorizedResponse({ description: 'A valid access token is required.' })
+  @ApiUnauthorizedResponse({ description: 'A valid administrator access cookie is required.' })
   @ApiForbiddenResponse({ description: 'Only administrators can view accounts.' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.usersService.findOne(id);
@@ -100,24 +103,32 @@ export class UsersController {
   @ApiBadRequestResponse({ description: 'The request is invalid or violates account rules.' })
   @ApiConflictResponse({ description: 'An account with the email already exists.' })
   @ApiNotFoundResponse({ description: 'The account does not exist.' })
-  @ApiUnauthorizedResponse({ description: 'A valid access token is required.' })
+  @ApiUnauthorizedResponse({ description: 'A valid administrator access cookie is required.' })
   @ApiForbiddenResponse({ description: 'Only administrators can update accounts.' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserDto) {
     return this.usersService.update(id, dto);
   }
 
-  @Delete(':id')
-  @ApiOperation({ summary: 'Soft-delete a user account.' })
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Activate or deactivate a user account.' })
   @ApiParam({ name: 'id', type: Number, description: 'User ID.', example: 42 })
-  @ApiOkResponse({
-    description: 'The account was soft-deleted.',
-    schema: { type: 'object', properties: { status: { type: 'string', example: 'deleted' } }, required: ['status'] },
+  @ApiBody({
+    schema: {
+      type: 'object',
+      required: ['status'],
+      properties: { status: { type: 'string', enum: Object.values(UserStatus), example: UserStatus.INACTIVE } },
+      additionalProperties: false,
+    },
   })
-  @ApiBadRequestResponse({ description: 'The ID must be an integer.' })
+  @ApiOkResponse({
+    description: 'The account status was updated.',
+    type: UserResponseDto,
+  })
+  @ApiBadRequestResponse({ description: 'The ID or status is invalid.' })
   @ApiNotFoundResponse({ description: 'The account does not exist.' })
-  @ApiUnauthorizedResponse({ description: 'A valid access token is required.' })
-  @ApiForbiddenResponse({ description: 'Only administrators can delete accounts.' })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.usersService.remove(id);
+  @ApiUnauthorizedResponse({ description: 'A valid administrator access cookie is required.' })
+  @ApiForbiddenResponse({ description: 'Only administrators can change account status.' })
+  updateStatus(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateUserStatusDto) {
+    return this.usersService.updateStatus(id, dto.status);
   }
 }

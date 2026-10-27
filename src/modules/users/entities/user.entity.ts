@@ -1,14 +1,7 @@
-import {
-  Column,
-  CreateDateColumn,
-  DeleteDateColumn,
-  Entity,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { TechnicianProfile } from './technician-profile.entity.js';
 import { UserRole } from './user-role.enum.js';
+import { UserStatus } from './user-status.enum.js';
 
 @Entity({ name: 'users' })
 export class User {
@@ -27,6 +20,9 @@ export class User {
   @Column({ type: 'enum', enum: UserRole, default: UserRole.TECHNICIAN })
   role!: UserRole;
 
+  @Column({ type: 'enum', enum: UserStatus, enumName: 'users_status_enum', default: UserStatus.ACTIVE })
+  status!: UserStatus;
+
   @OneToOne(() => TechnicianProfile, (profile) => profile.user, {
     cascade: ['insert', 'update'],
     eager: false,
@@ -38,7 +34,4 @@ export class User {
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt!: Date;
-
-  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
-  deletedAt!: Date | null;
 }

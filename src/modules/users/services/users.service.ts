@@ -6,6 +6,7 @@ import { UpdateUserDto } from '../dtos/update-user.dto.js';
 import { UserResponseDto } from '../dtos/user-response.dto.js';
 import { TechnicianProfile } from '../entities/technician-profile.entity.js';
 import { UserRole } from '../entities/user-role.enum.js';
+import { UserStatus } from '../entities/user-status.enum.js';
 import { User } from '../entities/user.entity.js';
 
 @Injectable()
@@ -18,6 +19,7 @@ export class UsersService {
       email: dto.email,
       passwordHash: await hash(dto.password, 12),
       role: dto.role,
+      status: dto.status ?? UserStatus.ACTIVE,
     });
     if (dto.specialty) user.technicianProfile = this.createProfile(dto.specialty, user);
     return this.saveUser(user);
@@ -63,10 +65,10 @@ export class UsersService {
     return this.saveUser(user);
   }
 
-  async remove(id: number): Promise<{ status: 'deleted' }> {
-    const deleted = await this.userDao.softDelete(id);
-    if (!deleted) throw new NotFoundException('User not found.');
-    return { status: 'deleted' };
+  async updateStatus(id: number, status: UserStatus): Promise<UserResponseDto> {
+    const user = await this.getUserOrFail(id);
+    user.status = status;
+    return this.saveUser(user);
   }
 
   private async getUserOrFail(id: number): Promise<User> {

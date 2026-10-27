@@ -20,6 +20,8 @@ No subas `.env` ni secretos reales al repositorio. La configuración de TypeORM 
 ## Estructura
 
 - `src/modules/`: funcionalidades del negocio; está vacío deliberadamente para que agregues tus propios módulos.
+- `src/modules/vehicles/`: CRUD administrativo de vehículos, con eliminación lógica y restauración.
+- `src/modules/workshops/`: gestión de talleres y validación de talleres activos para asignar mantenimientos.
 - `src/infrastructure/`: integraciones técnicas, conexión de base de datos, migraciones, Redis, health check y web.
 - `src/shared/`: código reutilizable entre módulos.
 - `src/config/`: configuración y validación de variables de entorno.
@@ -34,5 +36,7 @@ No subas `.env` ni secretos reales al repositorio. La configuración de TypeORM 
 - `npm run migration:generate -- src/infrastructure/database/migrations/NombreMigracion`: genera una migración comparando entidades y base de datos.
 - `npm run migration:run`: aplica migraciones pendientes.
 - `npm run migration:revert`: revierte la última migración.
+
+El CRUD de vehículos está documentado en [src/docs/vehicles-crud.md](src/docs/vehicles-crud.md). Ejecuta `npm run migration:run` para crear su tabla antes de usar `/vehicles`.
 
 La conexión para la API usa `DB_*`; el servicio de Redis usa `REDIS_*`. Para ejecutar la API dentro de un contenedor, configura `DB_HOST=postgres` y `REDIS_HOST=redis`.

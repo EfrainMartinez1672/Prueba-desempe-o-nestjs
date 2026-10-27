@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { UserRole } from '../entities/user-role.enum.js';
+import { UserStatus } from '../entities/user-status.enum.js';
 import { CreateUserSchema } from './create-user.dto.js';
 import { UpdateUserSchema } from './update-user.dto.js';
 
@@ -38,6 +39,7 @@ describe('User DTO schemas', () => {
       name: 'Taylor Reed',
       email: 'taylor@example.com',
       role: UserRole.TECHNICIAN,
+      status: UserStatus.ACTIVE,
       specialty: 'Electrical systems',
     });
   });

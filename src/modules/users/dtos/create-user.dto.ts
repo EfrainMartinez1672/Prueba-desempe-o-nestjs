@@ -1,6 +1,7 @@
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { UserRole } from '../entities/user-role.enum.js';
+import { UserStatus } from '../entities/user-status.enum.js';
 
 export const CreateUserSchema = z
   .object({
@@ -13,6 +14,7 @@ export const CreateUserSchema = z
       .transform((email) => email.toLowerCase()),
     password: z.string().min(8).max(72),
     role: z.nativeEnum(UserRole),
+    status: z.nativeEnum(UserStatus).default(UserStatus.ACTIVE),
     specialty: z.string().trim().min(1).max(120).optional(),
   })
   .superRefine((user, context) => {

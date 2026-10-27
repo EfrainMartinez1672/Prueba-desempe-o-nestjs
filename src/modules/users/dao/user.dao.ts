@@ -36,11 +36,6 @@ export class UserDao {
       .getOne();
   }
 
-  async softDelete(id: number): Promise<boolean> {
-    const result = await this.repository.softDelete(id);
-    return Boolean(result.affected);
-  }
-
   async deleteTechnicianProfile(id: number): Promise<void> {
     await this.profileRepository.delete(id);
   }

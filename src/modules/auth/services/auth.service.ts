@@ -7,6 +7,7 @@ import { RedisService } from '../../../infrastructure/redis/redis.service.js';
 import { UserDao } from '../../users/dao/user.dao.js';
 import { UserResponseDto } from '../../users/dtos/user-response.dto.js';
 import { UserRole } from '../../users/entities/user-role.enum.js';
+import { UserStatus } from '../../users/entities/user-status.enum.js';
 import { hashAuthToken, refreshSessionKey, revokedAccessTokenKey } from '../auth-token.util.js';
 import { LoginDto } from '../dtos/auth.dto.js';
 
@@ -70,7 +71,7 @@ export class AuthService {
 
   async login(dto: LoginDto): Promise<TokenPair & { user: UserResponseDto }> {
     const user = await this.userDao.findByEmail(dto.email);
-    if (!user || !(await compare(dto.password, user.passwordHash))) {
+    if (!user || user.status !== UserStatus.ACTIVE || !(await compare(dto.password, user.passwordHash))) {
       throw new UnauthorizedException('Credenciales inválidas.');
     }
 
@@ -105,7 +106,7 @@ export class AuthService {
     }
 
     const user = await this.userDao.findById(payload.sub);
-    if (!user) {
+    if (!user || user.status !== UserStatus.ACTIVE) {
       throw new UnauthorizedException('Refresh token no válido o expirado.');
     }
 
@@ -151,6 +152,11 @@ export class AuthService {
       typeof payload.exp !== 'number'
     ) {
       throw new UnauthorizedException('Token de acceso no válido o expirado.');
+    }
+
+    const user = await this.userDao.findById(payload.sub);
+    if (!user || user.status !== UserStatus.ACTIVE) {
+      throw new UnauthorizedException('La cuenta está inactiva.');
     }
 
     return payload;

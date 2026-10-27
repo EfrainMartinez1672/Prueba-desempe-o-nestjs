@@ -5,6 +5,7 @@ import { compare } from 'bcrypt';
 import type { RedisService } from '../../../infrastructure/redis/redis.service.js';
 import type { UserDao } from '../../users/dao/user.dao.js';
 import { UserRole } from '../../users/entities/user-role.enum.js';
+import { UserStatus } from '../../users/entities/user-status.enum.js';
 import type { User } from '../../users/entities/user.entity.js';
 import { hashAuthToken, refreshSessionKey, revokedAccessTokenKey } from '../auth-token.util.js';
 import type { LoginDto } from '../dtos/auth.dto.js';
@@ -19,10 +20,10 @@ describe('AuthService', () => {
     email: 'ana@example.com',
     passwordHash: 'stored-password-hash',
     role: UserRole.TECHNICIAN,
+    status: UserStatus.ACTIVE,
     technicianProfile: { specialty: 'Electrical systems' },
     createdAt: new Date('2026-01-01T00:00:00.000Z'),
     updatedAt: new Date('2026-01-01T00:00:00.000Z'),
-    deletedAt: null,
   } as User;
 
   const buildService = () => {
@@ -63,6 +64,16 @@ describe('AuthService', () => {
     vi.mocked(userDao.findByEmail).mockResolvedValue(null);
 
     await expect(service.login({ email: 'nobody@example.com', password: 'password' } as LoginDto)).rejects.toThrow(
+      UnauthorizedException,
+    );
+    expect(compare).not.toHaveBeenCalled();
+  });
+
+  it('rejects login for an inactive account', async () => {
+    const { service, userDao } = buildService();
+    vi.mocked(userDao.findByEmail).mockResolvedValue({ ...user, status: UserStatus.INACTIVE } as User);
+
+    await expect(service.login({ email: user.email, password: 'password' } as LoginDto)).rejects.toThrow(
       UnauthorizedException,
     );
     expect(compare).not.toHaveBeenCalled();
@@ -115,6 +126,14 @@ describe('AuthService', () => {
     vi.mocked(redisService.rotateValue).mockRejectedValue(new Error('Redis unavailable'));
 
     await expect(service.refresh('previous-refresh-token')).rejects.toThrow('Redis unavailable');
+  });
+
+  it('rejects refresh for an inactive account', async () => {
+    const { service, userDao, jwtService } = buildService();
+    vi.mocked(jwtService.verifyAsync).mockResolvedValue({ sub: user.id, sid: 'session-1', tokenUse: 'refresh' });
+    vi.mocked(userDao.findById).mockResolvedValue({ ...user, status: UserStatus.INACTIVE } as User);
+
+    await expect(service.refresh('refresh-token')).rejects.toThrow(UnauthorizedException);
   });
 
   it('revokes the session and blacklists the current access token on logout', async () => {

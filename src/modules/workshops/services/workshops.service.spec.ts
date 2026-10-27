@@ -53,7 +53,7 @@ describe('WorkshopsService', () => {
     workshop.status = WorkshopStatus.INACTIVE;
     await expect(service.assertCanAssignMaintenance(3)).rejects.toThrow(ConflictException);
     vi.mocked(dao.findById).mockResolvedValue(null);
-    await expect(service.assertCanAssignMaintenance(404)).rejects.toThrow(ConflictException);
+    await expect(service.assertCanAssignMaintenance(404)).rejects.toThrow(NotFoundException);
   });
 
   it('returns not found for an unknown workshop', async () => {

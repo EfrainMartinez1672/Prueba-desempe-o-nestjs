@@ -13,6 +13,7 @@ export function setupSwagger(app: INestApplication, prefix: string): void {
     .addTag('users', 'Administrator-only user account management.')
     .addTag('vehicles', 'Administrator-only vehicle fleet management.')
     .addTag('workshops', 'Administrator-only workshop management.')
+    .addTag('maintenances', 'Administrator-only vehicle maintenance scheduling and history.')
     .addTag('workshops', 'Administrator-only workshop management and status.')
     .addTag('health', 'Application health checks.')
     .build();

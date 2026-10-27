@@ -39,7 +39,8 @@ export class WorkshopsService {
 
   async assertCanAssignMaintenance(workshopId: number): Promise<void> {
     const workshop = await this.workshopDao.findById(workshopId);
-    if (!workshop || workshop.status !== WorkshopStatus.ACTIVE) {
+    if (!workshop) throw new NotFoundException('Workshop not found.');
+    if (workshop.status !== WorkshopStatus.ACTIVE) {
       throw new ConflictException('Maintenance can only be assigned to an existing active workshop.');
     }
   }

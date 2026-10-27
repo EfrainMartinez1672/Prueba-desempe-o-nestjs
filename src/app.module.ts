@@ -5,6 +5,7 @@ import Joi from 'joi';
 import databaseConfig from './config/database.config.js';
 import { HealthModule } from './infrastructure/health/health.module.js';
 import { RedisModule } from './infrastructure/redis/redis.module.js';
+import { MaintenancesModule } from './modules/maintenances/maintenances.module.js';
 import { UsersModule } from './modules/users/users.module.js';
 import { VehiclesModule } from './modules/vehicles/vehicles.module.js';
 import { WorkshopsModule } from './modules/workshops/workshops.module.js';
@@ -44,6 +45,7 @@ import { WorkshopsModule } from './modules/workshops/workshops.module.js';
     UsersModule,
     VehiclesModule,
     WorkshopsModule,
+    MaintenancesModule,
   ],
 })
 export class AppModule {}

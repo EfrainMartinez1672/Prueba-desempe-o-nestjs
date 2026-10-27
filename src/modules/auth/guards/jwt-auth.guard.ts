@@ -23,14 +23,14 @@ export class JwtAuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = request.cookies?.accessToken;
     if (typeof token !== 'string' || token.length === 0) {
-      throw new UnauthorizedException('Se requiere una cookie accessToken válida.');
+      throw new UnauthorizedException('A valid accessToken cookie is required.');
     }
     const payload = await this.authService.verifyAccessToken(token);
     if (
       (await this.authService.isAccessTokenRevoked(token)) ||
       !(await this.authService.hasActiveSession(payload.sid))
     ) {
-      throw new UnauthorizedException('La sesión fue revocada.');
+      throw new UnauthorizedException('The session was revoked.');
     }
 
     request.accessToken = token;
